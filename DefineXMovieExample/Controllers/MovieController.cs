@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.Net;
+using System.Text;
 
 namespace DefineXMovieExample.Controllers
 {
@@ -59,6 +60,32 @@ namespace DefineXMovieExample.Controllers
             }
 
             return View(editMovie);
+        }
+        public ViewResult AddMovie() => View();
+
+        [HttpPost]
+        public async Task<IActionResult> AddMovie(Movie movie) // movie objesi serialize edilecek
+        {
+            // Kaydedildikten sonra dönen film için oluşturduk
+            Movie kaydedilmisFilm = new Movie();
+
+            using (var httpClient = new HttpClient())
+            {
+                StringContent serializeEdilecekFilm = new StringContent(JsonConvert.SerializeObject(movie), Encoding.UTF8, "application/json");
+
+               // var json = new JavaScriptSerializer().Serialize(serializeEdilecekFilm);
+
+                using (var response = await httpClient.PostAsync("https://localhost:7150/api/Movie", serializeEdilecekFilm))
+                {
+                    string gelenKaydedilmisFilmJsonString = await response.Content.ReadAsStringAsync();
+                    kaydedilmisFilm = JsonConvert.DeserializeObject<Movie>(gelenKaydedilmisFilmJsonString);
+
+                   // ViewBag.Basari = kaydedilmisFilm.name + " kaydedildi";
+                }
+            }
+
+            return RedirectToAction("Index");
+            // return View(kaydedilmisFilm);
         }
     }
     
